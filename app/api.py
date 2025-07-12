@@ -9,19 +9,21 @@ load_dotenv('../.env.local')
 API_KEY = os.getenv('POLYGON_API_KEY')
 
 def get_ticker_details(ticker):
-    # Get ticker details for AAPL
+    # Get ticker details
     url = f"https://api.polygon.io/v3/reference/tickers"
+    headers = {
+        "Authorization": f"Bearer {API_KEY}"
+    }
     params = {
         "ticker": ticker,
         "market": "stocks",
         "active": "true",
         "order": "asc",
         "limit": "5",
-        "sort": "ticker",
-        "apiKey": API_KEY
+        "sort": "ticker"
     }
     
-    response = requests.get(url, params=params)
+    response = requests.get(url, headers=headers, params=params)
     
     if response.status_code == 200:
         data = response.json()
