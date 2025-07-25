@@ -44,9 +44,10 @@ def get_financial_statements_data(ticker):
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
         data = response.json()
+        return data
     else:
         print(f"Error: {response.status_code} - {response.text}")
-    return data
+        return None
 
 def get_financial_statement(statement_type, ticker):
     data = get_financial_statements_data(ticker)
@@ -72,6 +73,41 @@ def get_gross_margin(ticker):
     gross_margin = round((gross_profit / revenue) * 100, 2)
     print(f"{ticker} Gross Margin: {gross_margin}%")
     return gross_margin
+
+def get_financial_report(ticker):
+    """
+    Get key financial metrics for a ticker from the income statement.
+    Returns a dictionary with Revenue, Gross Profit, Net Income, and Diluted EPS.
+    """
+    fields = {
+        "Revenue": "revenues",
+        "Gross Profit": "gross_profit",
+        "Net Income": "net_income_loss",
+        "Diluted EPS": "diluted_earnings_per_share",
+    }
+    
+    report = {"Ticker": ticker}
+    
+    for label, field in fields.items():
+        try:
+            value = get_statement_field(field, ticker, "income_statement")
+            # Format large numbers (in millions/billions) for readability
+            if label in ["Revenue", "Gross Profit", "Net Income"] and value is not None:
+                if value >= 1_000_000_000:
+                    report[label] = f"${value/1_000_000_000:.2f}B"
+                elif value >= 1_000_000:
+                    report[label] = f"${value/1_000_000:.2f}M"
+                else:
+                    report[label] = f"${value:,.2f}"
+            elif label == "Diluted EPS" and value is not None:
+                report[label] = f"${value:.2f}"
+            else:
+                report[label] = "N/A"
+        except Exception as e:
+            print(f"Error getting {label} for {ticker}: {e}")
+            report[label] = "N/A"
+    
+    return report
     
 if __name__ == "__main__":
     #get_ticker_details("AAPL")
