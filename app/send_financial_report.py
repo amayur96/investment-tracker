@@ -6,6 +6,8 @@ from email_client import send_email
 
 load_dotenv('.env.local')
 
+DELAY = 60
+
 def create_html_table(ticker_reports):
     html = """
     <html>
@@ -80,13 +82,12 @@ def send_financial_report(to_email, tickers):
             report = get_financial_report(ticker)
             ticker_reports.append(report)
             print(f"Successfully fetched data for {ticker}")
-            # Add 10 second delay between API calls
+            # Add delay between API calls
             if i < len(tickers) - 1:
-                print(f"Waiting 60 seconds before next request...")
-                time.sleep(60)
+                print(f"Waiting {DELAY} seconds before next request")
+                time.sleep(DELAY)
         except Exception as e:
             print(f"Error fetching data for {ticker}: {e}")
-            # Add error report with N/A values
             error_report = {
                 'Ticker': ticker,
                 'Revenue': 'N/A',
@@ -105,5 +106,6 @@ def send_financial_report(to_email, tickers):
 
 if __name__ == "__main__":
     tickers = ["META","AAPL", "MSFT", "GOOGL", "PLTR", "NVDA"]
-    recipient = os.getenv('EMAIL_FROM')
+    #recipient = os.getenv('EMAIL_FROM')
+    recipient = "mayur@technometrica.com"
     send_financial_report(recipient, tickers)
