@@ -1,35 +1,54 @@
 import os
 import requests
+import time
 from dotenv import load_dotenv
 
 # Load environment variables from .env.local
-load_dotenv('../.env.local')
+load_dotenv('.env.local')
 
 # Get API key from environment
 API_KEY = os.getenv('POLYGON_API_KEY')
+URL_MAP = {
+    "stocks": "https://api.polygon.io/v3/reference/tickers",
+    "option_contracts": "https://api.polygon.io/v3/reference/options/contracts",
+}
 
-def get_ticker_details(ticker):
-    # Get ticker details
-    url = f"https://api.polygon.io/v3/reference/tickers"
-    headers = {
-        "Authorization": f"Bearer {API_KEY}"
-    }
-    params = {
-        "ticker": ticker,
+PARAMS_MAP = {
+    "stocks": {
         "market": "stocks",
         "active": "true",
         "order": "asc",
         "limit": "5",
         "sort": "ticker"
+    },
+    "option_contracts": {
+        "active": "true",
+        "order": "asc",
+        "limit": "10",
+        "sort": "ticker"
     }
+}
+
+def get_ticker_details(ticker, type="stocks", **kwargs):
+    # Get ticker details
+    url = URL_MAP[type]
+    headers = {
+        "Authorization": f"Bearer {API_KEY}"
+    }
+    params = PARAMS_MAP[type]
+    if type == "stocks":
+        params["ticker"] = ticker
+    elif type == "option_contracts":
+        params["underlying_ticker"] = ticker
     
     response = requests.get(url, headers=headers, params=params)
     
     if response.status_code == 200:
         data = response.json()
-        print(data)
+        return data
     else:
         print(f"Error: {response.status_code} - {response.text}")
+        return None
 
 
 
@@ -113,6 +132,8 @@ if __name__ == "__main__":
     #get_ticker_details("AAPL")
     #get_ticker_details("PLTR")
     get_gross_margin("AAPL")
+    time.sleep(60)  # Wait 60 seconds
     get_gross_margin("PLTR")
+    time.sleep(60)  # Wait 60 seconds
     get_gross_margin("TSLA")
     
